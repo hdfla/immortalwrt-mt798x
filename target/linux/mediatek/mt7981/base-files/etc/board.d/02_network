@@ -80,7 +80,7 @@ mediatek_setup_interfaces()
 	glinet,x3000-emmc |\
 	*xe3000* |\
 	*mt2500*)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_set_interfaces_lan_wan lan "eth0"
 		;;
 	*zr-3020*)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"

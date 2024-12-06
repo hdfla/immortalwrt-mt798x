@@ -296,9 +296,14 @@ mediatek_setup_macs()
 		;;
 	*sl,3000-emmc*)
 		local wifi_mac="$(mmc_get_mac_binary factory 0x04)"
-		label_mac=$(macaddr_add $wifi_mac -2)
+		wan_mac=$(macaddr_add $wifi_mac -2)
 		lan_mac=$(macaddr_add $wifi_mac -1)
-		wan_mac=$label_mac
+		local b0dat="$(l1dat if2dat ra0)"
+		local b1dat="$(l1dat if2dat rax0)"
+		if [ -f ${b0dat} ] && ! grep -q "MacAddress=" ${b0dat}; then
+			local b0mac="$(macaddr_add $wifi_mac)"
+			echo "MacAddress=$b0mac" >> ${b0dat}
+		fi
 		local b1dat="$(l1dat if2dat rax0)"
 		if [ -f ${b1dat} ] && ! grep -q "MacAddress=" ${b1dat}; then
 			local b1mac="$(macaddr_add $wifi_mac 1)"

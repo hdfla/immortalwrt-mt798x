@@ -210,6 +210,7 @@ platform_do_upgrade() {
 	h3c,nx30pro |\
 	*honor,fur-602* |\
 	*konka,komi-a31* |\
+        *kst,wf3000a* |\
 	routerich,ax3000 |\
 	*nokia,ea0326gmp* |\
 	*newland,nl-wr8103* |\
@@ -266,6 +267,7 @@ platform_check_image() {
 	h3c,nx30pro |\
 	*honor,fur-602* |\
 	*konka,komi-a31* |\
+        *kst,wf3000a* |\
 	*nokia,ea0326gmp* |\
 	*newland,nl-wr8103* |\
 	newland,nl-wr9103 |\

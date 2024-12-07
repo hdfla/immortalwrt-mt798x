@@ -41,6 +41,7 @@ mediatek_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "2:lan" "3:wan" "6u@eth0" "5u@eth1"
 		;;
+        *kst,wf3000a* |\
         *sl,3000-emmc* |\
 	*cetron,ct3003*)
 		ucidef_set_interfaces_lan_wan "eth0.1" "eth0.2"
@@ -309,6 +310,7 @@ mediatek_setup_macs()
 			echo "MacAddress=$b1mac" >> ${b1dat}
 		fi
 		;;
+        *kst,wf3000a* |\
 	*newland,nl-wr8103*)
 		local wifi_mac=$(mtd_get_mac_binary Factory 0x4)
 		lan_mac=$(macaddr_add $wifi_mac -1)

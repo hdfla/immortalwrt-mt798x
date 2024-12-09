@@ -2,7 +2,7 @@
 #include "mt7981.dtsi"
 
 / {
-	model = "SL-3000 eMMC bootatrap version";
+	model = "SL-3000 eMMC bootstrap version";
 	compatible = "sl,3000-emmc", "mediatek,mt7981";
 
 	chosen {

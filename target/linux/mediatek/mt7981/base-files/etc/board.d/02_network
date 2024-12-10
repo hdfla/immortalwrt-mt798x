@@ -42,6 +42,7 @@ mediatek_setup_interfaces()
 			"0:lan" "1:lan" "2:lan" "3:wan" "6u@eth0" "5u@eth1"
 		;;
         *kst,wf3000a* |\
+        *sl,3000* |\
         *sl,3000-emmc* |\
 	*cetron,ct3003*)
 		ucidef_set_interfaces_lan_wan "eth0.1" "eth0.2"
@@ -292,6 +293,21 @@ mediatek_setup_macs()
 		fi
 		if [ -f ${b1dat} ] && ! grep -q "MacAddress=" ${b1dat}; then
 			local b1mac="$(macaddr_add $label_mac 3)"
+			echo "MacAddress=$b1mac" >> ${b1dat}
+		fi
+		;;
+	*sl,3000*)
+		local wifi_mac="$(mtd_get_mac_binary Factory 0x04)"
+		wan_mac=$(macaddr_add $wifi_mac -2)
+		lan_mac=$(macaddr_add $wifi_mac -1)
+		local b0dat="$(l1dat if2dat ra0)"
+		local b1dat="$(l1dat if2dat rax0)"
+		if [ -f ${b0dat} ] && ! grep -q "MacAddress=" ${b0dat}; then
+			local b0mac="$(macaddr_add $wifi_mac)"
+			echo "MacAddress=$b0mac" >> ${b0dat}
+		fi
+		if [ -f ${b1dat} ] && ! grep -q "MacAddress=" ${b1dat}; then
+			local b1mac="$(macaddr_add $wifi_mac 1)"
 			echo "MacAddress=$b1mac" >> ${b1dat}
 		fi
 		;;

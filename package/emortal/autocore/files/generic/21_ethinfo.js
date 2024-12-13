@@ -3,13 +3,6 @@
 'require rpc';
 'require network';
 
-var callSwconfigFeatures = rpc.declare({
-  object: 'luci',
-  method: 'getSwconfigFeatures',
-  params: ['switch'],
-  expect: { '': {} }
-});
-
 var callSwconfigPortState = rpc.declare({
   object: 'luci',
   method: 'getSwconfigPortState',
@@ -29,26 +22,6 @@ var callLuciNetworkDevices = rpc.declare({
   expect: { '': {} }
 });
 
-var isDSA = false;
-
-const ethStyle = {
-  box: 'max-width: 100px;',
-  head: `
-    border-radius: 7px 7px 0 0;
-    text-align: center;
-    font-weight: bold;`,
-  body: `
-    border: 1px solid lightgrey;
-    border-radius: 0 0 7px 7px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;`,
-  icon: 'margin: 5px; width: 40px;',
-  speed: 'font-size: 0.8rem; font-weight: bold;',
-  traffic: `
-    border-top: 1px solid lightgrey;
-    font-size: 0.8rem;`
-};
-
 function formatSpeed(speed) {
   if (speed <= 0) return '-';
   const speedInt = parseInt(speed);
@@ -57,123 +30,152 @@ function formatSpeed(speed) {
 }
 
 function getPortColor(carrier, duplex) {
-  if (!carrier) return 'background-color: whitesmoke;';
-  if (duplex === 'full' || duplex === true)
-    return 'background-color: greenyellow;';
-  return 'background-color: darkorange';
+  if (!carrier) return 'Gainsboro;';
+  if (duplex === 'full' || duplex === true) return 'greenyellow;';
+  return 'darkorange';
 }
 
 function getPortIcon(carrier) {
   return L.resource(`icons/port_${carrier ? 'up' : 'down'}.png`);
 }
 
-function portDom(link, duplex, label, speed, tx_bytes, rx_bytes) {
-  const portIcon = getPortIcon(link);
-  const portColor = getPortColor(link, duplex);
+function getPorts(board, netdevs, switches) {
+  const ports = [];
+  if (Object.keys(switches).length === 0) {
+    const network = board.network;
+    const ifnames = [network?.wan?.device].concat(network?.lan?.ports);
+    for (const ifname of ifnames) {
+      if (ifname in netdevs === false) continue;
+      const dev = netdevs[ifname];
+      ports.push({
+        ifname: dev.name,
+        carrier: dev.link.carrier,
+        duplex: dev.link.duplex,
+        speed: dev.link.speed,
+        tx_bytes: dev.stats.tx_bytes,
+        rx_bytes: dev.stats.rx_bytes
+      });
+    }
+    return ports;
+  }
 
-  return E('div', { style: ethStyle.box }, [
-    E('div', { style: ethStyle.head + portColor }, label),
-    E('div', { style: ethStyle.body }, [
-      E('img', { style: ethStyle.icon, src: portIcon }),
-      E('div', { style: ethStyle.speed }, formatSpeed(speed)),
-      E('div', { style: ethStyle.traffic }, [
-        '\u25b2\u202f%1024.1mB'.format(tx_bytes),
-        E('br'),
-        '\u25bc\u202f%1024.1mB'.format(rx_bytes)
+  const switch0 = switches.switch0;
+  const lan = netdevs['br-lan'];
+  const wan = netdevs[board.network.wan.device];
+  let portInfo = {};
+  let wanInSwitch = false;
+  for (const port of switch0.ports) {
+    const label = port.label.toUpperCase();
+    const { link, duplex, speed } = switch0.portstate[port.num];
+    portInfo = {
+      ifname: label,
+      carrier: link,
+      duplex,
+      speed,
+      tx_bytes: 0,
+      rx_bytes: 0
+    };
+
+    if (label.startsWith('WAN')) {
+      wanInSwitch = true;
+      if (wan) {
+        portInfo.tx_bytes = wan.stats.tx_bytes;
+        portInfo.rx_bytes = wan.stats.rx_bytes;
+      }
+      ports.unshift(portInfo);
+    } else if (label.startsWith('LAN')) {
+      if (lan && link) {
+        portInfo.tx_bytes = lan.stats.tx_bytes;
+        portInfo.rx_bytes = lan.stats.rx_bytes;
+      }
+      ports.push(portInfo);
+    }
+  }
+  if (wanInSwitch) return ports;
+
+  if (wan) {
+    ports.unshift({
+      ifname: 'WAN',
+      carrier: wan.link.carrier,
+      duplex: wan.link.duplex,
+      speed: wan.link.speed,
+      tx_bytes: wan.stats.tx_bytes,
+      rx_bytes: wan.stats.rx_bytes
+    });
+  }
+  return ports;
+}
+
+function renderPorts(data) {
+  const css = {
+    grids: `
+      display: grid; grid-gap: 5px 10px;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      margin-bottom: 1em;
+    `,
+    head: `
+      color: Black;
+      text-align: center;
+      font-weight: bold;
+      border-radius: 7px 7px 0 0;
+    `,
+    body: `
+      border: 1px solid lightgrey;
+      border-radius: 0 0 7px 7px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;`,
+    icon: 'margin: 5px; width: 32px;',
+    speed: 'font-size: 0.8rem; font-weight: bold;',
+    traffic: `
+      border-top: 1px solid lightgrey;
+      font-size: 0.8rem;`
+  };
+
+  const ports = [];
+  getPorts(...data).forEach((port) => {
+    const { carrier, duplex } = port;
+    const ifname = port.ifname.replace(' ', '');
+    const color = `background-color: ${getPortColor(carrier, duplex)};`;
+    ports.push(
+      E('div', {}, [
+        E('div', { style: css.head + color }, ifname),
+        E('div', { style: css.body }, [
+          E('img', { style: css.icon, src: getPortIcon(carrier) }),
+          E('div', { style: css.speed }, formatSpeed(port.speed)),
+          E('div', { style: css.traffic }, [
+            '\u25b2\u202f%1024.1mB'.format(port.tx_bytes),
+            E('br'),
+            '\u25bc\u202f%1024.1mB'.format(port.rx_bytes)
+          ])
+        ])
       ])
-    ])
-  ]);
+    );
+  });
+
+  return E('div', { style: css.grids }, ports);
 }
 
 return baseclass.extend({
   title: _('Ethernet Information'),
 
   load: function () {
-    return network.getSwitchTopologies().then(function (topologies) {
-      if (Object.keys(topologies).length === 0) {
-        isDSA = true;
-        return Promise.all([
-          L.resolveDefault(callLuciBoardJSON(), {}),
-          L.resolveDefault(callLuciNetworkDevices(), {})
-        ]);
-      }
-
-      callSwconfigPortState('switch0').then((ports) => {
-        topologies.switch0.portstate = ports;
-      });
-      return Promise.all([
-        topologies,
-        L.resolveDefault(callLuciBoardJSON(), {}),
-        L.resolveDefault(callLuciNetworkDevices(), {})
-      ]);
-    });
-  },
-
-  render_gsw: function (data) {
-    const topologies = data[0];
-    const board = data[1];
-    const netdevs = data[2];
-
-    let stats;
-    let foundWAN = false;
-    const ethPorts = [];
-    const switch0 = topologies.switch0;
-    for (const port of switch0.ports) {
-      const label = port.label.toUpperCase();
-      const { link, duplex, speed } = switch0.portstate[port.num];
-      const txrx = { tx_bytes: 0, rx_bytes: 0 };
-
-      if (label.startsWith('WAN')) {
-        foundWAN = true;
-        stats = netdevs[board.network.wan.device].stats;
-        const { tx_bytes, rx_bytes } = stats;
-        ethPorts.unshift(
-          portDom(link, duplex, 'WAN', speed, tx_bytes, rx_bytes)
-        );
-      } else if (label.startsWith('LAN')) {
-        stats = netdevs['br-lan'].stats;
-        const { tx_bytes, rx_bytes } = link ? stats : txrx;
-        ethPorts.push(portDom(link, duplex, label, speed, tx_bytes, rx_bytes));
-      }
-    }
-
-    if (foundWAN) return ethPorts;
-
-    const wan = netdevs[board.network.wan.device];
-    const { speed, duplex, carrier } = wan.link;
-    const { tx_bytes, rx_bytes } = wan.stats;
-    ethPorts.unshift(
-      portDom(carrier, duplex, 'WAN', speed, tx_bytes, rx_bytes)
-    );
-    return ethPorts;
-  },
-
-  render_dsa: function (data) {
-    const board = data[0];
-    const netdevs = data[1];
-
-    const ethPorts = [];
-    const wan = board.network.wan.device;
-    let devices = `${wan},lan0,lan1,lan2,lan3,lan4,lan5,lan6`;
-    devices = devices.split(',');
-    for (const device of devices) {
-      if (device in netdevs === false) continue;
-      const dev = netdevs[device];
-      const label = dev.name;
-      const { speed, duplex, carrier } = dev.link;
-      const { tx_bytes, rx_bytes } = dev.stats;
-      ethPorts.push(portDom(carrier, duplex, label, speed, tx_bytes, rx_bytes));
-    }
-
-    return ethPorts;
+    return Promise.all([
+      L.resolveDefault(callLuciBoardJSON(), {}),
+      L.resolveDefault(callLuciNetworkDevices(), {}),
+      network.getSwitchTopologies().then((topologies) => {
+        const switches = Object.keys(topologies);
+        if (switches.length === 0) return {};
+        switches.forEach((name) => {
+          callSwconfigPortState(name).then((ports) => {
+            topologies[name].portstate = ports;
+          });
+        });
+        return topologies;
+      })
+    ]);
   },
 
   render: function (data) {
-    const ethPorts = isDSA ? this.render_dsa(data) : this.render_gsw(data);
-    const gridStyle = `
-      display: grid; grid-gap: 5px 5px;
-      grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-      margin-bottom: 1em`;
-    return E('div', { style: gridStyle }, ethPorts);
+    return renderPorts(data);
   }
 });

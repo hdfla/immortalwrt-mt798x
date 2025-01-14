@@ -368,21 +368,29 @@ static void fill_rate_info(HTTRANSMIT_SETTING HTSetting, struct iwinfo_rate_entr
 {
 	unsigned long DataRate = 0;
 
-	if (HTSetting.field.MODE >= MODE_HTMIX && HTSetting.field.MODE < MODE_HE)
+	if (HTSetting.field.MODE >= MODE_HTMIX && HTSetting.field.MODE <= MODE_VHT)
 	{
 		if (HTSetting.field.ShortGI)
 			re->is_short_gi = 1;
 	}
 
-	if (HTSetting.field.MODE >= MODE_HTMIX && HTSetting.field.MODE <= MODE_HTGREENFIELD)
+	if (HTSetting.field.MODE >= MODE_HTMIX && HTSetting.field.MODE <= MODE_HTGREENFIELD) {
 		re->is_ht = 1;
-	else if (HTSetting.field.MODE == MODE_VHT)
+		re->is_he = 0;
+	} else if (HTSetting.field.MODE == MODE_VHT) {
 		re->is_vht = 1;
-	else if (HTSetting.field.MODE >= MODE_HE)
+		re->is_he = 0;
+		re->is_ht = 0;
+	} else if (HTSetting.field.MODE >= MODE_HE) {
 		re->is_he = 1;
+		re->is_vht = 0;
+		re->is_ht = 0;
+	}
 
-	if (HTSetting.field.MODE >= MODE_HE)
+	if (HTSetting.field.MODE >= MODE_HE) {
 		re->he_gi = HTSetting.field.ShortGI;
+		re->he_dcm = !(HTSetting.field.MCS & 0x10);
+	}
 
 	if (HTSetting.field.BW == BW_20)
 		re->mhz = 20;

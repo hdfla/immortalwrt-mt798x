@@ -113,6 +113,12 @@ struct channel_list_basic {
 #define TMI_TX_RATE_CCK_5M_SP   6
 #define TMI_TX_RATE_CCK_11M_SP  7
 
+/* Extension channel offset */
+#define EXTCHA_NONE			0
+#define EXTCHA_ABOVE		0x1
+#define EXTCHA_BELOW		0x3
+#define EXTCHA_NOASSIGN		0xf
+
 enum oid_bw {
 	BAND_WIDTH_20,
 	BAND_WIDTH_40,

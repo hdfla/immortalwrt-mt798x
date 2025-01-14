@@ -654,6 +654,18 @@ static int mtk_get_freqlist(const char *dev, char *buf, int *len)
 		bl = 0;
 		for (i = 0; i < ch_list.ChListNum; i++)
 		{
+			switch (band)
+			{
+				case MTK_CH_BAND_24G:
+					entry.band = IWINFO_BAND_24;
+					break;
+				case MTK_CH_BAND_5G:
+					entry.band = IWINFO_BAND_5;
+					break;
+				case MTK_CH_BAND_6G:
+					entry.band = IWINFO_BAND_6;
+					break;
+			}
 			entry.channel = ch_list.ChList[i].channel;
 			entry.mhz = mtk_channel2freq(ch_list.ChList[i].channel, band);
 			entry.restricted = 0;

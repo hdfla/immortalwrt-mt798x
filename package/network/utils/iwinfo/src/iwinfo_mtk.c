@@ -245,13 +245,61 @@ static int mtk_get_channel(const char *dev, int *buf)
 
 static int mtk_get_center_chan1(const char *dev, int *buf)
 {
-	/* Not Supported */
+	struct iwreq wrq;
+	int Ch1, band;
+	const char *ifname;
+
+	ifname = mtk_dev2phy(dev);
+	if (!ifname)
+		return -1;
+
+	band = mtk_get_band(dev);
+	if (band < 0)
+		return -1;
+
+	if (mtk_get_channel(dev, &Ch1) < 0)
+		return -1;
+
+	wrq.u.data.length = sizeof(Ch1);
+	wrq.u.data.pointer = &Ch1;
+	wrq.u.data.flags = OID_802_11_GET_CENTRAL_CHAN1;
+
+	if (mtk_ioctl(ifname, RT_PRIV_IOCTL, &wrq) >= 0)
+	{
+		*buf = Ch1;
+		return 0;
+	}
+
 	return -1;
 }
 
 static int mtk_get_center_chan2(const char *dev, int *buf)
 {
-	/* Not Supported */
+	struct iwreq wrq;
+	int Ch2, band;
+	const char *ifname;
+
+	ifname = mtk_dev2phy(dev);
+	if (!ifname)
+		return -1;
+
+	band = mtk_get_band(dev);
+	if (band < 0)
+		return -1;
+
+	if (mtk_get_channel(dev, &Ch2) < 0)
+		return -1;
+
+	wrq.u.data.length = sizeof(Ch2);
+	wrq.u.data.pointer = &Ch2;
+	wrq.u.data.flags = OID_802_11_GET_CENTRAL_CHAN2;
+
+	if (mtk_ioctl(ifname, RT_PRIV_IOCTL, &wrq) >= 0)
+	{
+		*buf = Ch2;
+		return 0;
+	}
+
 	return -1;
 }
 

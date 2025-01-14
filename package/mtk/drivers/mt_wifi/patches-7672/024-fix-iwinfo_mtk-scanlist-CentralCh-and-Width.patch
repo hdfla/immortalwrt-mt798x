@@ -1,0 +1,36 @@
+--- a/mt_wifi/embedded/mgmt/bss_ops.c
++++ b/mt_wifi/embedded/mgmt/bss_ops.c
+@@ -780,15 +780,10 @@ VOID BssEntrySet(
+ 					/* 80M */
+ 						pBss->CentralChannel = vht_op->vht_op_info.ccfs_0;
+ 					else {
+-						if (((vht_op->vht_op_info.ccfs_1) - (vht_op->vht_op_info.ccfs_0)) == 8 ||
+-							((vht_op->vht_op_info.ccfs_1) - (vht_op->vht_op_info.ccfs_0)) == -8)
+-						/* 160M */
+-							pBss->CentralChannel = vht_op->vht_op_info.ccfs_1;
+-						else {
+-						/* 80M+80M */
+-							pBss->CentralChannel = vht_op->vht_op_info.ccfs_0;
+-							pBss->SecCentralChannel = vht_op->vht_op_info.ccfs_1;
+-						}
++						/* Ccfs_0 and ccfs_1 have already been converted in mgmt_vht.c,
++						so remove the above code directly! */
++						pBss->CentralChannel = vht_op->vht_op_info.ccfs_0;
++						pBss->SecCentralChannel = vht_op->vht_op_info.ccfs_1;
+ 					}
+ 				}
+ 			}
+--- a/mt_wifi/embedded/mgmt/mgmt_ht.c
++++ b/mt_wifi/embedded/mgmt/mgmt_ht.c
+@@ -245,7 +245,10 @@ UCHAR get_cent_ch_by_htinfo(
+ 	if ((ht_op->ControlChan > 2) &&
+ 		(ht_op->AddHtInfo.ExtChanOffset == EXTCHA_BELOW) &&
+ 		(ht_cap->HtCapInfo.ChannelWidth == BW_40))
++		if (ht_op->ControlChan == 14)
++			cent_ch = ht_op->ControlChan - 1;
++		else
++			cent_ch = ht_op->ControlChan - 2;
+-		cent_ch = ht_op->ControlChan - 2;
+ 	else if ((ht_op->AddHtInfo.ExtChanOffset == EXTCHA_ABOVE) &&
+ 			 (ht_cap->HtCapInfo.ChannelWidth == BW_40))
+ 		cent_ch = ht_op->ControlChan + 2;

@@ -78,6 +78,8 @@ struct channel_list_basic {
 #define OID_GET_CHANNEL_LIST					0x09C0
 #define OID_802_11_SECURITY_TYPE                0x093e
 #define RT_OID_802_11_PHY_MODE				0x050C
+#define OID_802_11_GET_CENTRAL_CHAN1					0x0978
+#define OID_802_11_GET_CENTRAL_CHAN2					0x0979
 #define GET_MAC_TABLE_STRUCT_FLAG_RAW_SSID	0x1
 
 #define MODE_CCK 0
@@ -110,6 +112,12 @@ struct channel_list_basic {
 #define TMI_TX_RATE_CCK_2M_SP   5
 #define TMI_TX_RATE_CCK_5M_SP   6
 #define TMI_TX_RATE_CCK_11M_SP  7
+
+/* Extension channel offset */
+#define EXTCHA_NONE			0
+#define EXTCHA_ABOVE		0x1
+#define EXTCHA_BELOW		0x3
+#define EXTCHA_NOASSIGN		0xf
 
 enum oid_bw {
 	BAND_WIDTH_20,
@@ -159,8 +167,6 @@ enum MTK_CH_BAND {
 	MTK_CH_BAND_5G = 1,
 	MTK_CH_BAND_6G = 2,
 };
-
-#define MAX_NUM_OF_CHANNELS		59
 
 struct __attribute__ ((packed)) chnList {
 	unsigned char channel;

@@ -809,3 +809,20 @@ define Device/routerich_ax3000
   DEVICE_PACKAGES := $(MT7981_USB_PKGS)
 endef
 TARGET_DEVICES += routerich_ax3000
+
+define Device/huasifei_wh3000-emmc
+  DEVICE_VENDOR := Huasifei
+  DEVICE_MODEL := WH3000 eMMC
+  DEVICE_ALT0_VENDOR := Fudy
+  DEVICE_ALT0_MODEL := MT3000
+  DEVICE_DTS := mt7981b-huasifei-wh3000-emmc
+  DEVICE_DTS_DIR := $(DTS_DIR)/mediatek
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware \
+	kmod-usb-net-cdc-mbim kmod-usb-net-qmi-wwan kmod-usb-serial-option \
+	kmod-usb3 automount f2fsck mkf2fs uqmi
+  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += huasifei_wh3000-emmc

@@ -1111,7 +1111,7 @@ config KERNEL_SQUASHFS_FRAGMENT_CACHE_SIZE
 
 config KERNEL_SQUASHFS_XATTR
 	bool "Squashfs XATTR support"
-
+	default y
 #
 # compile optimiziation setting
 #

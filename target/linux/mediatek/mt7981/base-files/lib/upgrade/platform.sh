@@ -197,6 +197,7 @@ platform_do_upgrade() {
 	*mt2500* |\
 	*zr-3020* |\
 	*360,t7* |\
+	huasifei,wh3000-emmc|\
 	ruijie,rg-x30e* |\
 	*abt,asr3000* |\
 	*cetron,ct3003* |\

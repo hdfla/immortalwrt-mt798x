@@ -211,6 +211,7 @@ platform_do_upgrade() {
 	*honor,fur-602* |\
 	*konka,komi-a31* |\
 	routerich,ax3000 |\
+ 	vht,32x6 |\
 	*nokia,ea0326gmp* |\
 	*newland,nl-wr8103* |\
 	newland,nl-wr9103 |\
@@ -266,6 +267,7 @@ platform_check_image() {
 	*honor,fur-602* |\
 	*konka,komi-a31* |\
 	*nokia,ea0326gmp* |\
+ 	vht,32x6 |\
 	*newland,nl-wr8103* |\
 	newland,nl-wr9103 |\
 	nradio,wt9103 |\

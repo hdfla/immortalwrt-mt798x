@@ -102,6 +102,11 @@ mediatek_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan:1" "2:lan:2" "3:lan:3" "4:wan" "6u@eth0" "5u@eth1"
 		;;
+	vht,32x6)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"1:lan" "2:lan" "0:wan" "6u@eth0" "5u@eth1"
+		;;
 	ikuai,q3000 |\
 	ruijie,rg-x30e*)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" wan
